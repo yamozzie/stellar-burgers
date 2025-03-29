@@ -1,27 +1,59 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from '../../services/store';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
-import { TIngredient } from '@utils-types';
+import { fetchFeed } from '../../services/slices/feedSlice';
+import { fetchIngredients } from '../../services/slices/ingredientsSlice';
+import { fetchUserOrders } from '../../services/slices/userOrderSlice';
+import { TOrder, TIngredient } from '@utils-types';
 
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const { number } = useParams<{ number: string }>();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const isModal = !!location.state?.background;
+  const isProfile = location.pathname.startsWith('/profile/orders');
 
-  const ingredients: TIngredient[] = [];
+  const userOrders = useSelector((state) => state.userOrders.orders);
+  const userOrdersLoading = useSelector((state) => state.userOrders.isLoading);
 
-  /* Готовим данные для отображения */
+  const feedOrders = useSelector((state) => state.feed.orders);
+  const feedLoading = useSelector((state) => state.feed.isLoading);
+
+  const ingredients = useSelector((state) => state.ingredients.items);
+  const ingredientsLoading = useSelector(
+    (state) => state.ingredients.isLoading
+  );
+
+  const orders = isProfile ? userOrders : feedOrders;
+  const ordersLoading = isProfile ? userOrdersLoading : feedLoading;
+
+  useEffect(() => {
+    if (ingredients.length === 0 && !ingredientsLoading) {
+      dispatch(fetchIngredients());
+    }
+  }, [dispatch, ingredients.length, ingredientsLoading]);
+
+  useEffect(() => {
+    if (!isProfile && orders.length === 0 && !ordersLoading) {
+      dispatch(fetchFeed());
+    }
+  }, [dispatch, isProfile, orders.length, ordersLoading]);
+
+  useEffect(() => {
+    if (isProfile && orders.length === 0 && !ordersLoading) {
+      dispatch(fetchUserOrders());
+    }
+  }, [dispatch, isProfile, orders.length, ordersLoading]);
+
+  const orderData = orders.find(
+    (order: TOrder) => order.number === Number(number)
+  );
   const orderInfo = useMemo(() => {
-    if (!orderData || !ingredients.length) return null;
-
-    const date = new Date(orderData.createdAt);
+    if (!orderData || ingredients.length === 0) {
+      return null;
+    }
 
     type TIngredientsWithCount = {
       [key: string]: TIngredient & { count: number };
@@ -29,39 +61,46 @@ export const OrderInfo: FC = () => {
 
     const ingredientsInfo = orderData.ingredients.reduce(
       (acc: TIngredientsWithCount, item) => {
-        if (!acc[item]) {
-          const ingredient = ingredients.find((ing) => ing._id === item);
-          if (ingredient) {
-            acc[item] = {
-              ...ingredient,
-              count: 1
-            };
+        const found = ingredients.find((ing) => ing._id === item);
+        if (found) {
+          if (!acc[item]) {
+            acc[item] = { ...found, count: 1 };
+          } else {
+            acc[item].count++;
           }
-        } else {
-          acc[item].count++;
         }
-
         return acc;
       },
       {}
     );
 
     const total = Object.values(ingredientsInfo).reduce(
-      (acc, item) => acc + item.price * item.count,
+      (acc, ing) => acc + ing.price * ing.count,
       0
     );
+
+    const date = new Date(orderData.createdAt);
 
     return {
       ...orderData,
       ingredientsInfo,
-      date,
-      total
+      total,
+      date
     };
   }, [orderData, ingredients]);
 
-  if (!orderInfo) {
+  if (ordersLoading || ingredientsLoading || !orderInfo) {
     return <Preloader />;
   }
 
-  return <OrderInfoUI orderInfo={orderInfo} />;
+  if (isModal) {
+    return <OrderInfoUI orderInfo={orderInfo} />;
+  } else {
+    return (
+      <div>
+        <h2 className='text text_type_main-large pb-5'>Детали заказа</h2>
+        <OrderInfoUI orderInfo={orderInfo} />
+      </div>
+    );
+  }
 };
