@@ -61,7 +61,9 @@ export const BurgerIngredients: FC = () => {
   }
 
   if (isError) {
-    return <p className='text text_type_main-large'>Ошибка загрузки ингредиентов</p>;
+    return (
+      <p className='text text_type_main-large'>Ошибка загрузки ингредиентов</p>
+    );
   }
 
   return (

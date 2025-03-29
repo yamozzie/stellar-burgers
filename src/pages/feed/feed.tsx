@@ -1,4 +1,3 @@
-
 import React, { FC, useEffect } from 'react';
 import { useSelector, useDispatch } from '../../services/store';
 import { fetchFeed } from '../../services/slices/feedSlice';

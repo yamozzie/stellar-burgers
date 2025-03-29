@@ -38,9 +38,7 @@ export const registerUser = createAsyncThunk(
         return rejectWithValue('Регистрация не удалась');
       }
     } catch (err: any) {
-      return rejectWithValue(
-        err.message
-      );
+      return rejectWithValue(err.message);
     }
   }
 );
@@ -59,7 +57,7 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue('Авторизация не удалась');
       }
     } catch (err: any) {
-      return rejectWithValue(err.message );
+      return rejectWithValue(err.message);
     }
   }
 );
