@@ -6,10 +6,14 @@ import { fetchUserProfile } from '../../services/slices/authSlice';
 import { Preloader } from '@ui';
 
 interface ProtectedRouteProps {
+  onlyUnAuth?: boolean;
   children: JSX.Element;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  onlyUnAuth,
+  children
+}) => {
   const location = useLocation();
   const dispatch = useDispatch();
 
@@ -40,6 +44,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (!autologinAttempted || isLoading) {
     return <Preloader />;
+  }
+
+  if (onlyUnAuth && isAuthenticated) {
+    return <Navigate to='/' state={{ from: location }} replace />;
   }
 
   return isAuthenticated ? (

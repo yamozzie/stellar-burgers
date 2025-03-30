@@ -18,7 +18,7 @@ export const BurgerIngredient: FC<TBurgerIngredientProps> = memo(
     const countInConstructor = ingredients.filter(
       (item) => item._id === ingredient._id
     ).length;
-    const countBun = bun && bun._id === ingredient._id ? 1 : 0;
+    const countBun = bun && bun._id === ingredient._id ? 2 : 0;
     const count = countInConstructor + countBun;
 
     const handleAdd = () => {

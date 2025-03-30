@@ -18,8 +18,13 @@ const burgerConstructorSlice = createSlice({
     addBun: (state, action: PayloadAction<TIngredient>) => {
       state.bun = action.payload;
     },
-    addIngredient: (state, action: PayloadAction<TConstructorIngredient>) => {
-      state.ingredients.push(action.payload);
+    addIngredient: {
+      reducer: (state, action: PayloadAction<TConstructorIngredient>) => {
+        state.ingredients.push(action.payload);
+      },
+      prepare: (ingredient: TIngredient) => ({
+        payload: { ...ingredient, id: nanoid() }
+      })
     },
     removeIngredient: (state, action: PayloadAction<string>) => {
       state.ingredients.filter((item) => item.id !== action.payload);
