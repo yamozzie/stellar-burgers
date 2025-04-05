@@ -6,7 +6,7 @@ interface IConstructorState {
   ingredients: TConstructorIngredient[];
 }
 
-const initialState: IConstructorState = {
+export const initialState: IConstructorState = {
   bun: null,
   ingredients: []
 };
@@ -27,7 +27,9 @@ const burgerConstructorSlice = createSlice({
       })
     },
     removeIngredient: (state, action: PayloadAction<string>) => {
-      state.ingredients.filter((item) => item.id !== action.payload);
+      state.ingredients = state.ingredients.filter(
+        (item) => item.id !== action.payload
+      );
     },
     clearConstructor(state) {
       state.bun = null;
